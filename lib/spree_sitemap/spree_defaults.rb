@@ -47,19 +47,19 @@ module SpreeSitemap::SpreeDefaults
   end
 
   def add_pages(options = {})
-    # TODO: this should be refactored to add_pages & add_page
+    Spree::CmsPage.visible.each do |page|
+      add_page(page, options = {})
+    end
+  end
 
-    Spree::Page.active.each do |page|
-      add(page.path, options.merge(lastmod: page.updated_at))
-    end if gem_available? 'spree_essential_cms'
-
-    Spree::Page.visible.each do |page|
-      add(page.slug, options.merge(lastmod: page.updated_at))
-    end if gem_available? 'spree_static_content'
+  def add_page(page, options = {})
+    add(page.slug, options.merge(lastmod: page.updated_at))
   end
 
   def add_taxons(options = {})
-    Spree::Taxon.roots.each { |taxon| add_taxon(taxon, options) }
+    private_taxonomy = Spree::Taxonomy.find_by_name('Private')
+
+    Spree::Taxon.where.not(taxonomy_id: private_taxonomy.id).roots.each { |taxon| add_taxon(taxon, options) }
   end
 
   def add_taxon(taxon, options = {})
